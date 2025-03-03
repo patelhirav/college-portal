@@ -30,7 +30,7 @@ model User {
   password String
   branch   String
   year     Int
-  semester Int
+  semester Int    @default(1)
   enr_no   String @unique
 }
 
