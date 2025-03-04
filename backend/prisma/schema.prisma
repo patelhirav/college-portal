@@ -24,15 +24,17 @@ model Admin {
 }
 
 model User {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   name     String
-  email    String @unique
+  email    String  @unique
   password String
   branch   String
   year     Int
-  semester Int    @default(1)
-  enr_no   String @unique
+  semester Int
+  enr_no   String  @unique
+  role     String  @default("user") // Add this line
 }
+
 
 model Assignment {
   id        String   @id @default(uuid())
@@ -41,6 +43,7 @@ model Assignment {
   year      Int
   semester  Int
   branch    String
+  fileUrl   String?
   createdAt DateTime @default(now())
 
   admin   Admin  @relation(fields: [adminId], references: [id])

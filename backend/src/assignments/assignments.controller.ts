@@ -2,29 +2,42 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Delete,
   Body,
-  Request,
-  UseGuards,
+  Param,
+  Req,
 } from '@nestjs/common';
 import { AssignmentsService } from './assignments.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 
 @Controller('assignments')
 export class AssignmentsController {
   constructor(private readonly assignmentsService: AssignmentsService) {}
 
+  @Post()
+  async create(@Req() req, @Body() dto: CreateAssignmentDto) {
+    return this.assignmentsService.createAssignment(req.user.id, dto);
+  }
+
   @Get()
-  async getAllAssignments() {
+  async findAll() {
     return this.assignmentsService.getAllAssignments();
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Post('create')
-  async create(@Request() req, @Body() dto: CreateAssignmentDto) {
-    return this.assignmentsService.createAssignment(req.user.id, dto);
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.assignmentsService.getAssignmentById(id);
+  }
+
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() dto: UpdateAssignmentDto) {
+    return this.assignmentsService.updateAssignment(id, dto);
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return this.assignmentsService.deleteAssignment(id);
   }
 }

@@ -1,27 +1,26 @@
-import { IsEmail, IsNotEmpty, IsString, IsInt } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumberString } from 'class-validator';
 
 export class SignupDto {
   @IsNotEmpty()
-  @IsString()
   name: string;
 
-  @IsNotEmpty()
   @IsEmail()
   email: string;
 
   @IsNotEmpty()
-  @IsString()
   password: string;
 
   @IsNotEmpty()
-  @IsString()
   branch: string;
 
   @IsNotEmpty()
-  @IsInt()
-  year: number;
+  @IsNumberString()
+  year: string; // Convert to number
 
   @IsNotEmpty()
-  @IsString()
-  enr_no: string;
+  @IsNumberString()
+  semester: string; // Convert to number
+
+  @IsNotEmpty()
+  enr_no: string; // Ensure enr_no is not empty
 }

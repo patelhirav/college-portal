@@ -1,16 +1,19 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateAdminDto {
   @IsNotEmpty()
+  @IsString()
   name: string;
 
+  @IsNotEmpty()
   @IsEmail()
   email: string;
 
   @IsNotEmpty()
-  @MinLength(6)
+  @IsString()
   password: string;
 
   @IsNotEmpty()
+  @IsString()
   branch: string;
 }

@@ -17,13 +17,24 @@ export class AuthService {
   ) {}
 
   async signup(signupDto: SignupDto) {
-    const { name, email, password, branch, year, enr_no } = signupDto;
+    const { name, email, password, branch, year, semester, enr_no } = signupDto;
+
+    if (!enr_no) {
+      throw new ConflictException('Enrollment number is required');
+    }
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
     if (existingUser) {
       throw new ConflictException('Email already exists');
+    }
+
+    const existingEnrNo = await this.prisma.user.findUnique({
+      where: { enr_no },
+    });
+    if (existingEnrNo) {
+      throw new ConflictException('Enrollment number already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -34,11 +45,11 @@ export class AuthService {
         email,
         password: hashedPassword,
         branch,
-        year,
+        year: Number(year),
+        semester: Number(semester),
         enr_no,
       },
     });
-
     return { message: 'User registered successfully', user };
   }
 
@@ -56,7 +67,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = { id: user.id, email: user.email, role: 'user' };
-    return { access_token: this.jwtService.sign(payload) };
+    const payload = { id: user.id, email: user.email };
+    const access_token = this.jwtService.sign(payload);
+
+    return {
+      message: 'Login successful',
+      user: { id: user.id, name: user.name, email: user.email },
+      access_token,
+    };
   }
 }

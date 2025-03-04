@@ -1,22 +1,34 @@
-import { Controller, Post, Body, UseGuards, Req, Get } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Param } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Roles } from '../auth/roles.decorator';
-import { RolesGuard } from '../auth/roles.guard';
+import { UpdateAdminDto } from './dto/update-admin.dto';
 
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Post('create')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('superadmin')
-  async createAdmin(@Body() dto: CreateAdminDto, @Req() req) {
-    return this.adminService.createAdmin(dto, req.user.role);
+  @Post()
+  createAdmin(@Body() dto: CreateAdminDto) {
+    return this.adminService.createAdmin(dto);
   }
+
   @Get()
-  async getAllAdmins() {
+  getAllAdmins() {
     return this.adminService.getAllAdmins();
+  }
+
+  @Get(':id')
+  getAdminById(@Param('id') id: string) {
+    return this.adminService.getAdminById(id);
+  }
+
+  @Patch(':id')
+  updateAdmin(@Param('id') id: string, @Body() dto: UpdateAdminDto) {
+    return this.adminService.updateAdmin(id, dto);
+  }
+
+  @Delete(':id')
+  deleteAdmin(@Param('id') id: string) {
+    return this.adminService.deleteAdmin(id);
   }
 }

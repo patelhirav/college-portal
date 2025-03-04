@@ -1,30 +1,31 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
 import { CreateAdminDto } from './dto/create-admin.dto';
+import { UpdateAdminDto } from './dto/update-admin.dto';
 
 @Injectable()
 export class AdminService {
   constructor(private prisma: PrismaService) {}
 
+  async createAdmin(dto: CreateAdminDto) {
+    return this.prisma.admin.create({ data: dto });
+  }
+
   async getAllAdmins() {
     return this.prisma.admin.findMany();
   }
 
-  async createAdmin(dto: CreateAdminDto, createdByRole: string) {
-    if (createdByRole !== 'superadmin') {
-      throw new ForbiddenException('Only Super Admin can create Admins');
-    }
+  async getAdminById(id: string) {
+    const admin = await this.prisma.admin.findUnique({ where: { id } });
+    if (!admin) throw new NotFoundException('Admin not found');
+    return admin;
+  }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+  async updateAdmin(id: string, dto: UpdateAdminDto) {
+    return this.prisma.admin.update({ where: { id }, data: dto });
+  }
 
-    return this.prisma.admin.create({
-      data: {
-        name: dto.name,
-        email: dto.email,
-        password: hashedPassword,
-        branch: dto.branch,
-      },
-    });
+  async deleteAdmin(id: string) {
+    return this.prisma.admin.delete({ where: { id } });
   }
 }
