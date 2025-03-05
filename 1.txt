@@ -1,0 +1,140 @@
+model Leave {
+  id          String   @id @default(uuid())  
+  internName  String
+  leaveAddedOn DateTime @default(now())
+  leaveDate   DateTime
+  noOfDays    Int
+  leaveReason String
+  status      String   @default("Pending") // Pending, Approved, Rejected
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+}
+Run the migration:
+
+sh
+Copy code
+npx prisma migrate dev --name add_leave_model
+2️⃣ Generate Leave Module
+Run:
+
+sh
+Copy code
+nest generate module leave
+nest generate service leave
+nest generate controller leave
+3️⃣ Implement leave.service.ts
+ts
+Copy code
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateLeaveDto, UpdateLeaveStatusDto } from './leave.dto';
+
+@Injectable()
+export class LeaveService {
+  constructor(private prisma: PrismaService) {}
+
+  async applyLeave(userId: string, data: CreateLeaveDto) {
+    return this.prisma.leave.create({
+      data: {
+        ...data,
+        userId,
+      },
+    });
+  }
+
+  async getLeavesByUser(userId: string) {
+    return this.prisma.leave.findMany({
+      where: { userId },
+    });
+  }
+
+  async getAllLeaves() {
+    return this.prisma.leave.findMany();
+  }
+
+  async updateLeaveStatus(id: string, data: UpdateLeaveStatusDto) {
+    return this.prisma.leave.update({
+      where: { id },
+      data,
+    });
+  }
+}
+4️⃣ Implement leave.controller.ts
+ts
+Copy code
+import { Controller, Post, Get, Patch, Body, Param, Request, UseGuards } from '@nestjs/common';
+import { LeaveService } from './leave.service';
+import { CreateLeaveDto, UpdateLeaveStatusDto } from './leave.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
+@Controller('leave')
+export class LeaveController {
+  constructor(private leaveService: LeaveService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Post('apply')
+  async applyLeave(@Request() req, @Body() data: CreateLeaveDto) {
+    return this.leaveService.applyLeave(req.user.id, data);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my-leaves')
+  async getMyLeaves(@Request() req) {
+    return this.leaveService.getLeavesByUser(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('all')
+  async getAllLeaves() {
+    return this.leaveService.getAllLeaves();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  async updateLeaveStatus(@Param('id') id: string, @Body() data: UpdateLeaveStatusDto) {
+    return this.leaveService.updateLeaveStatus(id, data);
+  }
+}
+5️⃣ Create leave.dto.ts
+ts
+Copy code
+import { IsDateString, IsInt, IsNotEmpty, IsString } from 'class-validator';
+
+export class CreateLeaveDto {
+  @IsString()
+  @IsNotEmpty()
+  internName: string;
+
+  @IsDateString()
+  leaveDate: string;
+
+  @IsInt()
+  noOfDays: number;
+
+  @IsString()
+  @IsNotEmpty()
+  leaveReason: string;
+}
+
+export class UpdateLeaveStatusDto {
+  @IsString()
+  @IsNotEmpty()
+  status: string; // Approved or Rejected
+}
+📌 Testing API Endpoints
+Method	Endpoint	Description
+POST	/leave/apply	Student applies for leave
+GET	/leave/my-leaves	Get logged-in user's leaves
+GET	/leave/all	Get all leave requests (Admin)
+PATCH	/leave/:id/status	Admin updates leave status
+This will allow students to apply for leave and admins to approve or reject requests. 🚀 Let me know if you need changes!
+
+
+
+
+
+
+
+
+Search
+
